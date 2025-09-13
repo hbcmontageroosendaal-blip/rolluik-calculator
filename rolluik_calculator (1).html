@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rolluik Prijscalculator</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 0 20px; }
+  h1 { text-align: center; }
+  label { display: block; margin-top: 10px; }
+  input, select, button { width: 100%; padding: 8px; margin-top: 5px; }
+  table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+</style>
+</head>
+<body>
+<h1>Rolluik Prijscalculator</h1>
+
+<label>Breedte (cm):
+  <input type="text" id="breedte">
+</label>
+<label>Hoogte (cm):
+  <input type="text" id="hoogte">
+</label>
+<label>Bedieningsoptie:
+  <select id="bediening">
+    <option value="Handmatig">Handmatig</option>
+    <option value="Wandschakelaar">Wandschakelaar</option>
+    <option value="Somfy bedraad IO">Somfy bedraad IO</option>
+    <option value="Somfy Solar">Somfy Solar</option>
+  </select>
+</label>
+<button onclick="voegRolluikToe()">Voeg rolluik toe</button>
+
+<h2>Toegevoegde rolluiken</h2>
+<table id="rolluikTabel">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Afmetingen (m²)</th>
+      <th>Bediening</th>
+      <th>Prijs (€)</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<h2>Totaalprijs: €<span id="totaalPrijs">0.00</span></h2>
+
+<script>
+const montagePrijzen = {
+  "Handmatig": [200, 150],
+  "Wandschakelaar": [200, 150],
+  "Somfy bedraad IO": [200, 150],
+  "Somfy Solar": [150, 125]
+};
+
+const tarieven = {
+  "TariefPerM2": 50, // pas dit aan naar jouw tarief
+  "VasteKosten": 100 // pas dit aan naar jouw vaste kosten
+};
+
+let rolluiken = [];
+
+function berekenBasis(m2) {
+  return (m2 * tarieven.TariefPerM2 + tarieven.VasteKosten) * 1.21;
+}
+
+function berekenMontagePrijs(index, bediening) {
+  return index === 0 ? montagePrijzen[bediening][0] : montagePrijzen[bediening][1];
+}
+
+function voegRolluikToe() {
+  const breedte = parseFloat(document.getElementById('breedte').value.replace(',', '.')) / 100;
+  const hoogte = parseFloat(document.getElementById('hoogte').value.replace(',', '.')) / 100;
+  const bediening = document.getElementById('bediening').value;
+
+  if (isNaN(breedte) || isNaN(hoogte) || breedte <= 0 || hoogte <= 0) {
+    alert("Voer geldige afmetingen in.");
+    return;
+  }
+
+  const m2 = breedte * hoogte;
+  const basis = berekenBasis(m2);
+  const montage = berekenMontagePrijs(rolluiken.length, bediening);
+  const totaal = (basis + montage).toFixed(2);
+
+  rolluiken.push({ m2, bediening, totaal });
+
+  updateTabel();
+}
+
+function updateTabel() {
+  const tbody = document.querySelector("#rolluikTabel tbody");
+  tbody.innerHTML = "";
+  let totaalPrijs = 0;
+
+  rolluiken.forEach((r, i) => {
+    totaalPrijs += parseFloat(r.totaal);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${i+1}</td><td>${r.m2.toFixed(2)}</td><td>${r.bediening}</td><td>${r.totaal}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('totaalPrijs').innerText = totaalPrijs.toFixed(2);
+}
+</script>
+</body>
+</html>
